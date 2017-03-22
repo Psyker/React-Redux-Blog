@@ -1,50 +1,30 @@
+import App from './components/App';
+import { Provider } from 'react-redux';
 import ReactDOM from 'react-dom';
 import React from 'react';
-import {createStore} from 'redux';
+import { applyMiddleware, createStore} from 'redux';
+import { promiseMiddleware } from './middleware';
 
-const defaultState = {checked: false};
-const reducer = function (state = defaultState, action) {
-    switch (action.type) {
-        case 'TOGGLE':
-            return {...state, checked: !state.checked};
-        default:
-            break;
-    }
-    return state;
+const defaultState = {
+    appName: 'React-Blog',
+    articles: []
 };
-const store = createStore(reducer);
-
-class App extends React.Component {
-    constructor() {
-        super();
-        this.state = {}
+const reducer = function (state = defaultState, action) {
+    console.log(action, state);
+    switch (action.type) {
+        case 'HOME_PAGE_LOADED':
+            return Object.assign({}, state, {
+                articles: action.payload.articles
+            });
+        default: return state;
     }
+};
 
-    render() {
-        const onClick = () => {
-            store.dispatch({ type : 'TOGGLE' })
-        };
-        return (
-            <div>
-                <h1>To-Dos</h1>
-                <div>
-                    Learn Redux &nbsp;
-                    <input
-                        type="checkbox"
-                        checked={!!this.state.checked}
-                        onClick={onClick}
-                    />
-                </div>
-                { this.state.checked ? (<h2>Done !</h2>) : null }
-            </div>
-        );
-    }
 
-    componentWillMount() {
-        store.subscribe(() => this.setState(store.getState()))
-    }
-}
+const store = createStore(reducer, applyMiddleware(promiseMiddleware));
 
 ReactDOM.render((
-    <App />
-), document.getElementById('root'));
+    <Provider store={store}>
+        <App />
+    </Provider>
+), document.getElementById('main'));
